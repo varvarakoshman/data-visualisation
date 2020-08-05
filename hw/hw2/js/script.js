@@ -102,19 +102,17 @@ loadData().then(data => {
 
         let xMap = d => +d[xParam][year];
         let yMap = d => +d[yParam][year];
+        let d = svg.selectAll('circle')
+                    .data(data);
         // Part 1, 2: создаем и обновляем состояние точек
-        let p = svg.selectAll('circle')
-            .data(data).enter().append('circle')
+        d.enter()
+            .append('circle')
+            .merge(d)
             .attr('cx', d => x(xMap(d)))
             .attr('cy', d => y(yMap(d)))
             .attr('r', 5);
-
-        // p.enter().append('circle')
-        //     .attr('cx', function(d) { return +d[xParam][year]; })
-        //     .attr('cy', function(d) { return +d[yParam][year]; })
-        //     .attr('r', 5);
-
-        // p.exit().remove();
+            
+        d.exit().remove();
     }
 
     // рисуем график в первый раз
