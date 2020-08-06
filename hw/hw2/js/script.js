@@ -11,6 +11,7 @@ let xParam = 'fertility-rate';
 let yParam = 'child-mortality';
 let radius = 'gdp';
 let year = '2000';
+let region = 'region';
 
 // Эти переменные понадобятся в Part 2 и 3
 const params = ['child-mortality', 'fertility-rate', 'gdp', 'life-expectancy', 'population'];
@@ -22,30 +23,31 @@ const x = d3.scaleLinear()
 const y = d3.scaleLinear()
             .range([height-margin, margin]);
 
-
 // Создаем наименования для шкал и помещаем их на законные места, сохраняя переменные
 const xLable = svg.append('text')
                 .attr('transform', `translate(${width/2}, ${height})`);
 const yLable = svg.append('text')
                 .attr('transform', `translate(${margin/2}, ${height/2}) rotate(-90)`);
-
 // Part 1: по аналогии со строчками сверху задайте атрибуты 'transform', чтобы переместить оси 
 const xAxis = svg.append('g')
                 .attr('transform', `translate(0, ${height - margin})`)
 const yAxis = svg.append('g')
                 .attr('transform', `translate(${margin*2}, 0)`)
 
-
 // Part 2: Здесь можно создать шкалы для цвета и радиуса объектов
-// const color = d3.scaleOrdinal()...
-// const r = d3.scaleSqrt()...
+const color = d3.scaleOrdinal()
+                .range(colors);
+const r = d3.scaleSqrt()
+            .range([1, 20])
 
 // Part 2: для элемента select надо задать options http://htmlbook.ru/html/select
 // и установить selected для дефолтного значения
-
-// d3.select('#radius').selectAll('option')
-//         ...
-
+d3.select('#radius').selectAll('option')
+                    .data(params)
+                    .enter()
+                    .append("option")
+                    .text(d => d)
+                    .property("selected", d => d === radius);
 
 // Part 3: то же, что делали выше, но для осей
 // ...
@@ -57,12 +59,13 @@ loadData().then(data => {
 
     // Part 2: здесь мы можем задать пораметр 'domain' для цветовой шкалы
     // для этого нам нужно получить все уникальные значения поля 'region', сделать это можно при помощи 'd3.nest'
-    //let regions = d3.nest()...
-    //color.domain(regions);
+    let regions = d3.nest()
+                    .key(d => d.region)
+                    .entries(data);
+    color.domain(regions);
 
     // подписка на изменение позиции ползунка
     d3.select('.slider').on('change', newYear);
-
     // подписка на событие 'change' элемента 'select'
     d3.select('#radius').on('change', newRadius);
 
@@ -74,10 +77,12 @@ loadData().then(data => {
         year = this.value;
         updateChart()
     }
-
+    // Part 2: по аналогии с newYear
     function newRadius(){
-        // Part 2: по аналогии с newYear
+        radius = this.value;
+        updateChart()
     }
+
     function updateChart(){
         // Обновляем все лейблы в соответствии с текущем состоянием
         xLable.text(xParam);
@@ -98,10 +103,14 @@ loadData().then(data => {
                     .scale(y)); 
         
         // Part 2: теперь у нас есть еще одна непостоянная шкала
-        // ...
+        let radiusRange = data.map(d => +d[radius][year]);
+        r.domain([d3.min(radiusRange), d3.max(radiusRange)]);
 
         let xMap = d => +d[xParam][year];
         let yMap = d => +d[yParam][year];
+        let radiusMap = d => +d[radius][year];
+        let regMap = d => d[region];
+
         let d = svg.selectAll('circle')
                     .data(data);
         // Part 1, 2: создаем и обновляем состояние точек
@@ -110,11 +119,11 @@ loadData().then(data => {
             .merge(d)
             .attr('cx', d => x(xMap(d)))
             .attr('cy', d => y(yMap(d)))
-            .attr('r', 5);
+            .attr('r', d => r(radiusMap(d)))
+            .style("fill", d => color(regMap(d)));
             
         d.exit().remove();
     }
-
     // рисуем график в первый раз
     updateChart();
 });
