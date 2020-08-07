@@ -50,8 +50,18 @@ d3.select('#radius').selectAll('option')
                     .property("selected", d => d === radius);
 
 // Part 3: то же, что делали выше, но для осей
-// ...
-
+d3.select('#x').selectAll('option')
+                    .data(params)
+                    .enter()
+                    .append("option")
+                    .text(d => d)
+                    .property("selected", d => d === xParam);
+d3.select('#y').selectAll('option')
+                    .data(params)
+                    .enter()
+                    .append("option")
+                    .text(d => d)
+                    .property("selected", d => d === yParam);
 
 loadData().then(data => {
     // сюда мы попадаем после загрузки данных и можем для начала на них посмотреть:
@@ -70,7 +80,8 @@ loadData().then(data => {
     d3.select('#radius').on('change', newRadius);
 
     // Part 3: подпишемся на изменения селектороы параметров осей
-    // ...
+    d3.select('#x').on('change', newX);
+    d3.select('#y').on('change', newY);
 
     // изменяем значение переменной и обновляем график
     function newYear(){
@@ -80,6 +91,16 @@ loadData().then(data => {
     // Part 2: по аналогии с newYear
     function newRadius(){
         radius = this.value;
+        updateChart()
+    }
+
+    function newX(){
+        xParam = this.value;
+        updateChart()
+    }
+
+    function newY(){
+        yParam = this.value;
         updateChart()
     }
 
