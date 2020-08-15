@@ -181,7 +181,7 @@ loadData().then(({data, world}) => {
             ...Object.values(rest).map(v=>v.find(r=>r.geo===d.geo)).reduce((o, d, i)=>({...o, [Object.keys(rest)[i]]: d }), {})
         }
     })
-    const world = await d3.json('http://enjalot.github.io/wwsd/data/world/world-110m.geojson');
+    const world = await d3.json('https://enjalot.github.io/wwsd/data/world/world-110m.geojson');
     console.log(data, world);
     return {data, world}
 }
