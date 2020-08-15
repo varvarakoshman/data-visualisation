@@ -22,9 +22,8 @@ loadData().then(({data, world}) => {
                         .filter(d => d);
 
     // TODO Part 2: тут можно создать шкалы х и y
-    // ...
-    // const x = d3.scaleBand(years, [0, width_second]).padding(.1);
-    // y = d3.scaleLinear().range([sliderHeight, 0]);
+    const x = d3.scaleBand(years, [0, width_second]).padding(.1);
+    const y = d3.scaleLinear().range([sliderHeight, 0]);
     
     // TODO Part 3: тут можно создать svg внутри #menu и добавить туда легенду
     // ...
@@ -62,21 +61,24 @@ loadData().then(({data, world}) => {
         });
 
     // создаем svg для добавления своих элементов
-    const range = d3.select('#slider').append('svg')
-                    .attr('width', width_second).attr('height', sliderHeight);
+    const range = d3.select('#slider')
+                .append('svg')
+                    .attr('width', width_second)
+                    .attr('height', sliderHeight);
 
     // накидываем overlay
-    range.append('rect').attr('width', width_second).attr('height', height_second).attr('id', 'overlay');
+    range.append('rect')
+            .attr('width', width_second)
+            .attr('height', height_second)
+            .attr('id', 'overlay');
     
     // создаем контейнер для барчарта
-    const chart = range.append('g');
-
+    let chart = range.append('g');
     // добавляем слайдер
     range.append('g').call(slider);
-    
     // убираем лишние элементы и делаем кастюмный thumb
     d3.select('g.slider').selectAll('line').remove();
-    // d3.select('g.parameter-value path').attr('d', `M 0,0 V ${sliderHeight} H -${x.bandwidth()} V 0 Z`);
+    d3.select('g.parameter-value path').attr('d', `M 0,0 V ${sliderHeight} H -${x.bandwidth()} V 0 Z`);
     
     // TODO Part 1: тут можно создать проекцию d3.geoEquirectangular() и подстроить ее под размеры экрана, а также
     // создать генератор пути
@@ -86,7 +88,7 @@ loadData().then(({data, world}) => {
     var geoGenerator = d3.geoPath().projection(projection);
     const { height, width } = document.getElementById('map').getBoundingClientRect()
     projection.fitExtent([[ 0, 0 ], [width, height]], world)
-    
+
     map = map.selectAll('path')
           .data(world.features)
           .enter()
@@ -98,7 +100,6 @@ loadData().then(({data, world}) => {
         //   .attr('stroke', 'white');
 
     function overCountry(d){
-        console.log(d.properties.name)
         d3.select('#country').text(d.properties.name);
     }
 
@@ -109,6 +110,7 @@ loadData().then(({data, world}) => {
     // эта функция будет обновлять оба графика при изменении какого-либо из двух основных параметров
     function update(){
       // обновляем год
+      console.log(param)
       d3.select('#year').text(year);
 
       // обновляем домен цветовой шкалы
@@ -130,16 +132,29 @@ loadData().then(({data, world}) => {
       // берем набор значений нужного показателя для каждого из годов для барчарта
       let array = years.map(y => d3.sum(data.map(d => +d[param][y])));
       // TODO Part 2: обновить домен шкалы y
-      // ...
+      y.domain([d3.min(array), d3.max(array)])
 
       // TODO Part 2: реализовать создание и добавление барчарта
-      // ...
+      var xyPairs = []
+      for (i = 0; i < years.length; i++) {
+          xyPairs.push([years[i], array[i]])
+      };
+      console.log(xyPairs)
+      let u = chart.selectAll('rect').data(xyPairs)
 
-      
+      u.enter().append('rect')
+            .merge(u)
+            .transition()
+            .duration(duration)
+            .attr('x', d => x(d[0]))
+            .attr('y', d => y(d[1]))
+            .attr("width", x.bandwidth())
+            .attr("height", d => height_second - y(d[1]));
+            
+       u.exit().remove();
       // TODO Part 3: обновляем шкалу в легенде на основе выбранных параметров
       // ...
     }
-
   // вызываем update() при инициации
   update();
   });
