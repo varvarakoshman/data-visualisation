@@ -26,24 +26,27 @@ loadData().then(({data, world}) => {
     const y = d3.scaleLinear().range([sliderHeight, 0]);
     
     // TODO Part 3: тут можно создать svg внутри #menu и добавить туда легенду
-    // ...
-    // const legend = d3.select('#menu').append('svg')
-    //     .attr('width', 200).attr("height", 40)
-    // let gradient = legend.append('defs')
-    //     .append("svg:linearGradient")
-    //         .attr("id", "gradient");
+    const legend = d3.select('#menu').append('svg')
+                    .attr('width', 200)
+                    .attr("height", 50)
+    let gradient = legend.append('defs')
+        .append("svg:linearGradient")
+        .attr("id", "gradient");
 
-    // gradient.append('stop').attr('offset', '0%')
-    //     .style("stop-color", colors[0]);
-    // gradient.append('stop').attr('offset', '100%')
-    //     .style("stop-color", colors[1]);
+    gradient.append('stop').attr('offset', '0%')
+        .style("stop-color", colors[0]);
+    gradient.append('stop').attr('offset', '100%')
+        .style("stop-color", colors[1]);
 
-    // legend.append('rect')
-    //     .attr('width', 200).attr("height", 20)
-    //     .style("fill", "url(#gradient)");
+    legend.append('rect')
+        .attr('width', 200)
+        .attr("height", 20)
+        .style("fill", "url(#gradient)");
 
-    // const axis = legend.append('g').attr('id','axis').attr('transform', 'translate(0,20)');
-     
+    const axis = legend.append('g').attr('id','axis')
+                        .attr('transform', 'translate(0,20)');
+    var x_legend = d3.scaleLinear()
+                    .range([0, 200]);
     // вызываем update() при изменении param
      d3.selectAll('input[name="param"]').on('change',function(){
       param = this.value;
@@ -86,8 +89,8 @@ loadData().then(({data, world}) => {
     let map = svg.attr('id', 'map')
     var projection = d3.geoEquirectangular();
     var geoGenerator = d3.geoPath().projection(projection);
-    const { height, width } = document.getElementById('map').getBoundingClientRect()
-    projection.fitExtent([[ 0, 0 ], [width, height]], world)
+    const { height, width } = document.getElementById('map').getBoundingClientRect();
+    projection.fitExtent([[ 0, 0 ], [width, height]], world);
 
     map = map.selectAll('path')
           .data(world.features)
@@ -110,7 +113,6 @@ loadData().then(({data, world}) => {
     // эта функция будет обновлять оба графика при изменении какого-либо из двух основных параметров
     function update(){
       // обновляем год
-      console.log(param)
       d3.select('#year').text(year);
 
       // обновляем домен цветовой шкалы
@@ -132,15 +134,14 @@ loadData().then(({data, world}) => {
       // берем набор значений нужного показателя для каждого из годов для барчарта
       let array = years.map(y => d3.sum(data.map(d => +d[param][y])));
       // TODO Part 2: обновить домен шкалы y
-      y.domain([d3.min(array), d3.max(array)])
+      y.domain([d3.min(array), d3.max(array)]);
 
       // TODO Part 2: реализовать создание и добавление барчарта
-      var xyPairs = []
+      var xyPairs = [];
       for (i = 0; i < years.length; i++) {
-          xyPairs.push([years[i], array[i]])
+          xyPairs.push([years[i], array[i]]);
       };
-      console.log(xyPairs)
-      let u = chart.selectAll('rect').data(xyPairs)
+      let u = chart.selectAll('rect').data(xyPairs);
 
       u.enter().append('rect')
             .merge(u)
@@ -153,10 +154,14 @@ loadData().then(({data, world}) => {
             
        u.exit().remove();
       // TODO Part 3: обновляем шкалу в легенде на основе выбранных параметров
-      // ...
+      x_legend.domain(d3.extent(data.map(d => +d[param][year])));
+      axis.call(d3.axisBottom().scale(x_legend).ticks(4)).style("text-anchor", "end"); //.tickSize(3, 0));//.tickSizeOuter(0));
+      let temp = d3.select("g#axis").node().childNodes;
+      let first_tick = temp[1];
+      d3.select(first_tick).attr("visibility","hidden");
     }
-  // вызываем update() при инициации
-  update();
+    // вызываем update() при инициации
+    update();
   });
 
   async function loadData() {
