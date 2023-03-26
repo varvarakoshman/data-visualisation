@@ -1,4 +1,4 @@
-# datavis
+# Data visualisation experiments with JavaScript's D3.js library
 
 ##### [Smile](https://varvarakoshman.github.io/data-visualisation/hw/hw1/index.html)
 ##### [Gap Minder Inspired World Health Data](https://varvarakoshman.github.io/data-visualisation/hw/hw2/index.html)
